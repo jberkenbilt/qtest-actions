@@ -21,5 +21,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build
-        shell: bash
-        run: ./build-windows ${{ matrix.wordsize }} ${{ matrix.tool }}
+        shell: cmd
+        run: ./build-windows.bat ${{ matrix.wordsize }} ${{ matrix.tool }}
