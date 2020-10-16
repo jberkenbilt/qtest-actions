@@ -1,0 +1,25 @@
+name: QPDF Build
+on:
+  push:
+    branches:
+    - main
+jobs:
+  Linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Build'
+        run: ./build
+  Windows:
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        tool: [msvc, mingw]
+        wordsize: [64, 32]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        shell: bash
+        run: ./build-windows
