@@ -63,21 +63,24 @@ dnl NEW
 
 POS_FMT=""
 oCFLAGS=$CFLAGS
-if test "$BUILDRULES" = "msvc"; then
-  CFLAGS="-WX $CFLAGS"
-else
-  CFLAGS="-Werror $CFLAGS"
-fi
+dnl if test "$BUILDRULES" = "msvc"; then
+dnl   CFLAGS="-WX $CFLAGS"
+dnl else
+dnl   CFLAGS="-Werror $CFLAGS"
+dnl fi
 for fmt in "%z" "%lld" "%I64d" "I64lld"; do
   if test "$POS_FMT" = ""; then
-    AC_MSG_CHECKING(for whether to use $fmt ($CFLAGS))
-    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    AC_MSG_CHECKING(for whether to use $fmt)
+    AC_RUN_IFELSE([AC_LANG_PROGRAM(
      [[
         #include <stdio.h>
+        #include <string.h>
      ]],
      [[
-        long long int a = 1;
-        printf("]$fmt[\n", a);
+        long long int a = 123456789012345ll;
+        char s[30];
+        sprintf(s, "]$fmt[", a);
+        return (strcmp(s, "123456789012345") == 0) ? 0 : 1
      ]]
      )],
      [POS_FMT=$fmt],[])
