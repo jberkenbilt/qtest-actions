@@ -2623,9 +2623,6 @@ $as_echo "no" >&6; }
    CFLAGS=$oCFLAGS
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: CFLAGS = $CFLAGS" >&5
-$as_echo "$as_me: WARNING: CFLAGS = $CFLAGS" >&2;}
-
 
 POS_FMT=""
 oCFLAGS=$CFLAGS
@@ -2634,10 +2631,10 @@ if test "$BUILDRULES" = "msvc"; then
 else
   CFLAGS="-Werror $CFLAGS"
 fi
-for fmt in "%y" "%lld" "%I64d" "I64lld"; do
+for fmt in "%z" "%lld" "%I64d" "I64lld"; do
   if test "$POS_FMT" = ""; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for whether to use $fmt" >&5
-$as_echo_n "checking for whether to use $fmt... " >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for whether to use $fmt ($CFLAGS)" >&5
+$as_echo_n "checking for whether to use $fmt ($CFLAGS)... " >&6; }
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 

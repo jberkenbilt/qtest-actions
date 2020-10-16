@@ -59,8 +59,6 @@ else
    CFLAGS=$oCFLAGS
 fi
 
-AC_MSG_WARN(CFLAGS = $CFLAGS)
-
 dnl NEW
 
 POS_FMT=""
@@ -70,9 +68,9 @@ if test "$BUILDRULES" = "msvc"; then
 else
   CFLAGS="-Werror $CFLAGS"
 fi
-for fmt in "%y" "%lld" "%I64d" "I64lld"; do
+for fmt in "%z" "%lld" "%I64d" "I64lld"; do
   if test "$POS_FMT" = ""; then
-    AC_MSG_CHECKING(for whether to use $fmt)
+    AC_MSG_CHECKING(for whether to use $fmt ($CFLAGS))
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
      [[
         #include <stdio.h>
