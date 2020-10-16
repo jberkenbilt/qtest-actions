@@ -3,6 +3,7 @@ dnl This config.in requires autoconf 2.5 or greater.
 
 AC_PREREQ([2.68])
 AC_INIT([build],[0.0.1])
+AC_CONFIG_HEADERS([config.h])
 
 AC_PROG_CC
 AC_SUBST(WFLAGS)
@@ -62,12 +63,6 @@ fi
 dnl NEW
 
 POS_FMT=""
-oCFLAGS=$CFLAGS
-dnl if test "$BUILDRULES" = "msvc"; then
-dnl   CFLAGS="-WX $CFLAGS"
-dnl else
-dnl   CFLAGS="-Werror $CFLAGS"
-dnl fi
 for fmt in "%z" "%lld" "%I64d" "I64lld"; do
   if test "$POS_FMT" = ""; then
     AC_MSG_CHECKING(for whether to use $fmt)
@@ -83,7 +78,7 @@ for fmt in "%z" "%lld" "%I64d" "I64lld"; do
         return (strcmp(s, "123456789012345") == 0) ? 0 : 1
      ]]
      )],
-     [POS_FMT=$fmt],[])
+     [POS_FMT=$fmt],[],[POS_FMT="%lld"])
     if test "$POS_FMT" != ""; then
        AC_MSG_RESULT(yes)
     else
@@ -91,7 +86,16 @@ for fmt in "%z" "%lld" "%I64d" "I64lld"; do
     fi
   fi
 done
-CFLAGS=$oCFLAGS
+if test "$POS_FMT" != ""; then
+  AC_DEFINE_UNQUOTED([POS_FMT], ["$POS_FMT"], [printf format for long long])
+fi
+if test "$Z" != ""; then
+  AC_DEFINE_UNQUOTED([Z], [1], [not used])
+fi
 
 AC_MSG_WARN(CFLAGS = $CFLAGS)
 AC_MSG_WARN(POS_FMT = $POS_FMT)
+
+AC_OUTPUT
+
+cat config.h
