@@ -11,6 +11,8 @@ if [[ $tool == mingw ]]; then
         PATH="/c/msys64/mingw32/bin:$PATH"
     fi
     g++ -v
+    pwd
+    ls -l
     ./configure
 elif [[ $tool == msvc ]]; then
     cl
