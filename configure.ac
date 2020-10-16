@@ -60,3 +60,24 @@ else
 fi
 
 AC_MSG_WARN(CFLAGS = $CFLAGS)
+
+dnl NEW
+
+POS_FMT=""
+for fmt in "%lld" "%I64d" "I64lld"; do
+  if test "$POS_FMT" = ""; then
+    AC_MSG_CHECKING(for whether to use $fmt)
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
+     [[int a = 1; int b = a; a = b;]]
+     )],
+     [POS_FMT=$fmt],[])
+    if test "$POS_FMT" != ""; then
+       AC_MSG_RESULT(yes)
+    else
+       AC_MSG_RESULT(no)
+    fi
+  fi
+done
+
+AC_MSG_WARN(CFLAGS = $CFLAGS)
+AC_MSG_WARN(POS_FMT = $POS_FMT)

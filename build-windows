@@ -3,12 +3,11 @@ wordsize=$1
 tool=$2
 
 if [[ $tool == mingw ]]; then
-    pacman -Sy --noconfirm make base-devel tar zip unzip
     if [[ $wordsize == 64 ]]; then
-        pacman -Sy --noconfirm mingw-w64-x86_64-toolchain
+##        pacman -Sy --noconfirm mingw-w64-x86_64-toolchain
         PATH="/c/msys64/mingw64/bin:$PATH"
     else
-        pacman -Sy --noconfirm mingw-w64-i686-toolchain
+##        pacman -Sy --noconfirm mingw-w64-i686-toolchain
         PATH="/c/msys64/mingw32/bin:$PATH"
     fi
     g++ -v
