@@ -1,6 +1,7 @@
 #!/bin/bash
 wordsize=$1
 tool=$2
+cd $(dirname $0)
 
 if [[ $tool == mingw ]]; then
     if [[ $wordsize == 64 ]]; then
@@ -11,8 +12,6 @@ if [[ $tool == mingw ]]; then
         PATH="/c/msys64/mingw32/bin:$PATH"
     fi
     g++ -v
-    pwd
-    ls -l
     ./configure
 elif [[ $tool == msvc ]]; then
     cl
