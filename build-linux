@@ -1,6 +1,5 @@
 #!/bin/bash
 set -ex
-sudo apt-get update
-sudo apt-get -y install autoconf build-essential
-autoconf
+#sudo apt-get update
+#sudo apt-get -y install autoconf build-essential
 ./configure

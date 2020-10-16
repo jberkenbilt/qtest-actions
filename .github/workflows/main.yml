@@ -1,4 +1,4 @@
-name: QPDF Build
+name: qtest build
 on:
   push:
     branches:
@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: 'Build'
-        run: ./build
+        run: ./build-linux
   Windows:
     runs-on: windows-2019
     strategy:
