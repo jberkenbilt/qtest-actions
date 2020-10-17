@@ -42,3 +42,11 @@ jobs:
           file: ./docker-build/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: build docker
+        shell: bash
+        run: docker-build/windows/build
