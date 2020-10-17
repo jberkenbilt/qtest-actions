@@ -1,0 +1,17 @@
+#!/bin/bash
+# Usage:
+#  docker run --rm -v <source>:/tmp/build commands to run
+
+set -e
+if [ $(id -u) = 0 ]; then
+    if [ ! -d /tmp/build ]; then
+        echo "/tmp/build must exist"
+        exit 2
+    fi
+    id=$(stat -c %u /tmp/build)
+    adduser --home /tmp/build --no-create-home --uid $id --disabled-password --gecos build build
+    exec sudo -iu build $0 "$@"
+fi
+
+cd /tmp/build
+"$@"
