@@ -6,7 +6,7 @@ if %2 == msvc (
     ) else (
        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
     )
-    bash ./build-windows %1 %2
+    bash basic/build-windows %1 %2
 ) else (
-    C:\msys64\usr\bin\env.exe MSYSTEM=MINGW64 /bin/bash -l %CD%/build-windows %1 %2
+    C:\msys64\usr\bin\env.exe MSYSTEM=MINGW64 /bin/bash -l %CD%/basic/build-windows %1 %2
 )
