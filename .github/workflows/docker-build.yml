@@ -40,6 +40,5 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./docker-build
           file: ./docker-build/Dockerfile
-          target: prod
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.tags }}
