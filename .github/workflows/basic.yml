@@ -25,4 +25,4 @@ jobs:
         run: ./basic/build-windows.bat ${{ matrix.wordsize }} ${{ matrix.tool }}
       - name: Run
         shell: cmd
-        run: ./basic/build/test1 *
+        run: 'basic\build\test1.exe *'
