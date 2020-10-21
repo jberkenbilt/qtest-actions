@@ -5,10 +5,8 @@ cd $(dirname $0)
 
 if [[ $tool == mingw ]]; then
     if [[ $wordsize == 64 ]]; then
-##        pacman -Sy --noconfirm mingw-w64-x86_64-toolchain
         PATH="/c/msys64/mingw64/bin:$PATH"
     else
-##        pacman -Sy --noconfirm mingw-w64-i686-toolchain
         PATH="/c/msys64/mingw32/bin:$PATH"
     fi
     g++ -v
@@ -17,3 +15,5 @@ elif [[ $tool == msvc ]]; then
     cl
     CC=cl CXX="cl -TP -GR" ./configure --with-buildrules=msvc ${1+"$@"}
 fi
+make BUILDRULES=$tool
+./build/test1 *

@@ -4,8 +4,11 @@ dnl This config.in requires autoconf 2.5 or greater.
 AC_PREREQ([2.68])
 AC_INIT([build],[0.0.1])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_FILES([autoconf.mk])
 
 AC_PROG_CC
+AC_PROG_CXX
+AC_HEADER_STDC
 AC_SUBST(WFLAGS)
 AC_SUBST(CXXWFLAGS)
 
@@ -91,6 +94,13 @@ if test "$POS_FMT" != ""; then
 fi
 if test "$Z" != ""; then
   AC_DEFINE_UNQUOTED([Z], [1], [not used])
+fi
+
+AC_SUBST(WINDOWS_WMAIN_XLINK_FLAGS)
+AC_SUBST(WINDOWS_MAIN_XLINK_FLAGS)
+if test "$BUILDRULES" = "msvc"; then
+  WINDOWS_WMAIN_XLINK_FLAGS="-link wsetargv.obj"
+  WINDOWS_MAIN_XLINK_FLAGS="-link setargv.obj"
 fi
 
 AC_MSG_WARN(CFLAGS = $CFLAGS)

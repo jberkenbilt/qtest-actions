@@ -1,0 +1,11 @@
+CC=gcc
+WFLAGS=-Wall
+CXXWFLAGS=
+CFLAGS=-g -O2 -Wconversion -Wsign-conversion $(WFLAGS)
+LDFLAGS=
+LIBS=
+CPPFLAGS=
+CXX=g++
+CXXFLAGS=-g -O2 -Wconversion -Wsign-conversion $(CXXWFLAGS) $(WFLAGS)
+WINDOWS_WMAIN_XLINK_FLAGS=
+WINDOWS_MAIN_XLINK_FLAGS=
