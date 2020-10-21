@@ -4,5 +4,5 @@ set -ex
 #sudo apt-get -y install autoconf build-essential
 cd $(dirname $0)
 ./configure
-make
+make all
 ./build/test1 *

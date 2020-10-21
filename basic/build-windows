@@ -15,5 +15,5 @@ elif [[ $tool == msvc ]]; then
     cl
     CC=cl CXX="cl -TP -GR" ./configure --with-buildrules=msvc ${1+"$@"}
 fi
-make BUILDRULES=$tool
+make BUILDRULES=$tool all
 ./build/test1 *
