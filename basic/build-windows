@@ -17,3 +17,5 @@ elif [[ $tool == msvc ]]; then
 fi
 make BUILDRULES=$tool all
 ./build/test1 *
+echo '===='
+./build/test1 '*'
