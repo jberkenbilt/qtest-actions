@@ -9,7 +9,9 @@ include make/rules.mk
 
 A := $(shell mkdir -p build)
 
-default:: $(TARGETS)
+default:: all
+
+all:: $(TARGETS)
 
 # -----
 
