@@ -10,4 +10,6 @@ if %2 == msvc (
 ) else (
     C:\msys64\usr\bin\env.exe MSYSTEM=MINGW64 /bin/bash -l %CD%/basic/build-windows %1 %2
 )
+
+echo done
 .\basic\build\test1 *
