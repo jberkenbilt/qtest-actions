@@ -1,0 +1,26 @@
+name: qtest build
+on:
+  push:
+    branches:
+    - test/conditional
+jobs:
+  A:
+    runs-on: ubuntu-latest
+    outputs:
+      do_b: "${{ steps.do_step.outputs.do }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'create output'
+        id: do_step
+        run: |
+          echo ::set-output name=do::1
+  B:
+    runs-on: ubuntu-latest
+    needs:
+      - A
+    if: "${{ needs.A.outputs.do_b == 1 }}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'echo'
+        run: |
+          echo "${{ needs.A.outputs.do_b }}"
