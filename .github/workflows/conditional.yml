@@ -13,7 +13,7 @@ jobs:
       - name: 'create output'
         id: do_step
         run: |
-          echo ::set-output name=do::1
+          echo ::set-output name=do::0
   B:
     runs-on: ubuntu-latest
     needs:
