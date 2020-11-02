@@ -27,7 +27,7 @@ jobs:
     steps:
       - run: 'sleep 360'
   Slack:
-    if: always()
+    if: ${{ always() }}
     name: Post Workflow Status To Slack
     needs:
       - Linux
