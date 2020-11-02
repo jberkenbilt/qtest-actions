@@ -21,6 +21,13 @@ jobs:
       - Failing
     steps:
       - run: 'true'
+  Canceled:
+    runs-on: ubuntu-latest
+    needs:
+      - Linux
+      - Failing
+    steps:
+      - run: 'sleep 360'
   Slack:
     if: always()
     name: Post Workflow Status To Slack
@@ -28,6 +35,7 @@ jobs:
       - Linux
       - Failing
       - Skipped
+      - Canceled
     runs-on: ubuntu-latest
     steps:
       - name: Slack Workflow Notification
