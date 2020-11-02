@@ -9,11 +9,25 @@ jobs:
     steps:
       - name: 'Build'
         run: 'true'
+  Failing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Build'
+        run: 'false'
+  Skipped:
+    runs-on: ubuntu-latest
+    needs:
+      - Linux
+      - Failing
+    steps:
+      - run: 'true'
   Slack:
     if: always()
     name: Post Workflow Status To Slack
     needs:
       - Linux
+      - Failing
+      - Skipped
     runs-on: ubuntu-latest
     steps:
       - name: Slack Workflow Notification
