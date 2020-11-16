@@ -159,6 +159,8 @@ class Main:
         if overall is not None:
             lines.append(f'Overall status: {overall}, {overall_duration}')
 
+        # Success: CAVO Build #49
+        # Duraton: 3m 49s
 
         lines.extend([
             f'• Repository: `{self.github_repository}`',
