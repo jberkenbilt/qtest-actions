@@ -9,9 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-        repository: adventhp/adventhp-devtools
-        token: ${{ secrets.CI_TOKEN }}
-        path: adventhp-devtools
+          repository: adventhp/adventhp-devtools
+          token: ${{ secrets.CI_TOKEN }}
+          path: adventhp-devtools
       - run: adventhp-devtools/slack-notify ${{ secrets.SLACK }}
   Linux:
     runs-on: ubuntu-latest
