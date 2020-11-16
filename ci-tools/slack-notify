@@ -14,6 +14,10 @@ def warn(*args, **kwargs):
 
 
 class Main:
+    CANCELED_ICON = "\u20e0"  # COMBINING ENCLOSING CIRCLE BACKSLASH
+    SUCCESS_ICON = "\u2713"   # CHECK MARK
+    FAILURE_ICON = "\u2717"   # BALLOT X
+
     def main(self, args=sys.argv[1:], prog=whoami):
         options = self.parse_args(args, prog)
         self.github_repository = os.environ.get('GITHUB_REPOSITORY', '')
@@ -97,13 +101,36 @@ class Main:
 
         print(json_dumps(jobs_data))
 
+        any_canceled = False
+        any_success = False
+        any_failure = False
         lines = []
         lines.append(
             f'*Completed <https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}|{self.github_workflow} #{self.github_run_number}>*')
         for j in jobs_data['jobs']:
-#            if j['conclusion'] is None:
-#                continue
-            lines.append(f'<{j["html_url"]}|{j["name"]}> {j["started_at"]} {j["completed_at"]} {j["conclusion"]} {j["status"]}')
+            if j['conclusion'] is None:
+                continue
+            conclusion = j['conclusion']
+            icon = Main.CANCELED_ICON
+            if 'success' == conclusion:
+                icon = Main.SUCCESS_ICON
+                any_success = True
+            elif 'failure' == conclusion:
+                icon = Main.FAILURE_ICON
+                any_failure = True
+            else:
+                any_canceled = True
+            lines.append(f'{icon} <{j["html_url"]}|{j["name"]}> {j["started_at"]} {j["completed_at"]} {j["conclusion"]} {j["status"]}')
+
+        overall = None
+        if any_failure:
+            overall = f'{Main.FAILURE_ICON} Failed'
+        elif any_canceled:
+            overall = f'{Main.CANCELED_ICON} Canceled'
+        elif any_success:
+            overall = f'{Main.SUCCESS_ICON} Succeeded'
+        if overall is not None:
+            lines.append(f'Overall status: {overall}')
 
         lines.extend([
             f'• Repository: `{self.github_repository}`',
