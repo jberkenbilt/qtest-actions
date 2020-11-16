@@ -4,6 +4,8 @@ import sys
 import argparse
 import requests
 import json
+import re
+from datetime import datetime
 
 whoami = os.path.basename(sys.argv[0])
 whereami = os.path.dirname(os.path.realpath(__file__))
@@ -92,6 +94,26 @@ class Main:
         r.raise_for_status()
         return json.loads(r.text)
 
+    def duration(self, start, end):
+        start_time = datetime.fromisoformat(start.replace('Z', '+00:00'))
+        end_time = datetime.fromisoformat(end.replace('Z', '+00:00'))
+        duration = (end_time - start_time).seconds
+        seconds = duration
+        minutes = 0
+        hours = 0
+        if seconds >= 60:
+            minutes = int(seconds / 60)
+            seconds = seconds % 60
+        if minutes >= 60:
+            hours = int(minutes / 60)
+            minutes = minutes % 60
+        result = f'{seconds}s'
+        if minutes > 0 or hours > 0:
+            result = f'{minutes}m ' + result
+            if hours > 0:
+                result = f'{hours}h ' + result
+        return result
+
     def post_complete(self, options):
         data = self.gh_get(f'https://api.github.com/repos/{self.github_repository}/actions/runs/{self.github_run_id}')
         jobs_data = self.gh_get(data['jobs_url'])
@@ -120,7 +142,8 @@ class Main:
                 any_failure = True
             else:
                 any_canceled = True
-            lines.append(f'{icon} <{j["html_url"]}|{j["name"]}> {j["started_at"]} {j["completed_at"]} {j["conclusion"]} {j["status"]}')
+            duration = self.duration(j['started_at'], j['completed_at'])
+            lines.append(f'{icon} <{j["html_url"]}|{j["name"]}> {duration} {j["conclusion"]} {status"]}')
 
         overall = None
         if any_failure:
@@ -129,8 +152,10 @@ class Main:
             overall = f'{Main.CANCELED_ICON} Canceled'
         elif any_success:
             overall = f'{Main.SUCCESS_ICON} Succeeded'
+        overall_duration = self.duration(data['created_at'], data['updated_at'])
         if overall is not None:
-            lines.append(f'Overall status: {overall}')
+            lines.append(f'Overall status: {overall}, {overall_duration}')
+
 
         lines.extend([
             f'• Repository: `{self.github_repository}`',
@@ -140,6 +165,8 @@ class Main:
             f'• Sha: <https://github.com/{self.github_repository}/commit/{self.github_sha}|{self.github_sha}>',
         ])
 
+# total duration is updated_at - created_at
+# job duration is completed_at - started_at
 
 
         message = {
