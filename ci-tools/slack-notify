@@ -16,7 +16,19 @@ def warn(*args, **kwargs):
 class Main:
     def main(self, args=sys.argv[1:], prog=whoami):
         options = self.parse_args(args, prog)
-        self.top(options)
+        self.github_repository = os.environ.get('GITHUB_REPOSITORY', '')
+        self.github_run_id = os.environ.get('GITHUB_RUN_ID', '')
+        self.github_ref = os.environ.get('GITHUB_REF', '')
+        self.github_sha = os.environ.get('GITHUB_SHA', '')
+        self.github_actor = os.environ.get('GITHUB_ACTOR', '')
+        self.github_event_name = os.environ.get('GITHUB_EVENT_NAME', '')
+        self.github_run_number = os.environ.get('GITHUB_RUN_NUMBER', '')
+        self.github_workflow = os.environ.get('GITHUB_WORKFLOW', '')
+        if options.start:
+            self.post_start(options)
+        else:
+            self.token = options.token
+            self.post_complete(options)
 
     def parse_args(self, args, prog):
         parser = argparse.ArgumentParser(
@@ -28,7 +40,7 @@ class Main:
                             required=True)
         parser.add_argument('--token',
                             help='github token')
-        mxg = parser.add_mutually_exclusive_group(required=False)
+        mxg = parser.add_mutually_exclusive_group(required=True)
         mxg.add_argument('--start',
                          help='report workflow start',
                          action='store_true', default=False)
@@ -40,30 +52,63 @@ class Main:
             sys.exit(f'{whoami}: --token is required with --complete')
         return options
 
-    def top(self, options):
-        github_repository = os.environ.get('GITHUB_REPOSITORY', '')
-        github_run_id = os.environ.get('GITHUB_RUN_ID', '')
-        github_ref = os.environ.get('GITHUB_REF', '')
-        github_sha = os.environ.get('GITHUB_SHA', '')
-        github_actor = os.environ.get('GITHUB_ACTOR', '')
-        github_event_name = os.environ.get('GITHUB_EVENT_NAME', '')
-        github_run_number = os.environ.get('GITHUB_RUN_NUMBER', '')
-        github_workflow = os.environ.get('GITHUB_WORKFLOW', '')
-
+    def post_start(self, options):
         message = {
-            'text': (f'Build started: https://github.com/{github_repository}/actions/runs/{github_run_id}'),
+            'text': (f'Build started: https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}'),
             'blocks': [
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
                         "text": f"""
-*Starting <https://github.com/{github_repository}/actions/runs/{github_run_id}|{github_workflow} #{github_run_number}>*
-• Repository: `{github_repository}`
-• Actor: `{github_actor}`
-• Event: `{github_event_name}`
-• Ref: <https://github.com/{github_repository}/tree/{github_ref}|{github_ref}>
-• Sha: <https://github.com/{github_repository}/commit/{github_sha}|{github_sha}>
+*Starting <https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}|{self.github_workflow} #{self.github_run_number}>*
+• Repository: `{self.github_repository}`
+• Actor: `{self.github_actor}`
+• Event: `{self.github_event_name}`
+• Ref: <https://github.com/{self.github_repository}/tree/{self.github_ref}|{self.github_ref}>
+• Sha: <https://github.com/{self.github_repository}/commit/{self.github_sha}|{self.github_sha}>
+"""
+                    }
+                }
+            ]
+        }
+        r = requests.post(
+            options.url,
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(message),
+        )
+        r.raise_for_status()
+
+    def gh_get(self, url):
+        r = requests.get(f'https://api.github.com/{url}',
+                         headers={
+                             'Accept': 'application/vnd.github.v3+json',
+                             'Authorization': f'token {self.token}'
+                         })
+        r.raise_for_status()
+        return json.loads(r.text)
+
+    def post_complete(self, options):
+        data = self.gh_get(f'repos/{self.github_repository}/actions/runs/{self.github_run_id}')
+
+        def json_dumps(data):   # XXX
+            return json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
+        print(json_dumps(data))
+
+        message = {
+            'text': (f'Build completed: https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}'),
+            'blocks': [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"""
+*Starting <https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}|{self.github_workflow} #{self.github_run_number}>*
+• Repository: `{self.github_repository}`
+• Actor: `{self.github_actor}`
+• Event: `{self.github_event_name}`
+• Ref: <https://github.com/{self.github_repository}/tree/{self.github_ref}|{self.github_ref}>
+• Sha: <https://github.com/{self.github_repository}/commit/{self.github_sha}|{self.github_sha}>
 """
                     }
                 }
