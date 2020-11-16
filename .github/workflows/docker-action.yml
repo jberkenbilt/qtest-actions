@@ -11,4 +11,4 @@ jobs:
         id: step1
         with:
           i1: some-input
-      - run: echo "output: ${{ steps.step1.outputs.o1 }}"
+      - run: "echo output: ${{ steps.step1.outputs.o1 }}"
