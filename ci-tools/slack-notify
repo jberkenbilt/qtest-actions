@@ -143,7 +143,7 @@ class Main:
             else:
                 any_canceled = True
             duration = self.duration(j['started_at'], j['completed_at'])
-            lines.append(f'{icon} <{j["html_url"]}|{j["name"]}> {duration} {j["conclusion"]} {status"]}')
+            lines.append(f'{icon} <{j["html_url"]}|{j["name"]}> {duration} {j["conclusion"]} {j["status"]}')
 
         overall = None
         if any_failure:
@@ -164,10 +164,6 @@ class Main:
             f'• Ref: <https://github.com/{self.github_repository}/tree/{self.github_ref}|{self.github_ref}>',
             f'• Sha: <https://github.com/{self.github_repository}/commit/{self.github_sha}|{self.github_sha}>',
         ])
-
-# total duration is updated_at - created_at
-# job duration is completed_at - started_at
-
 
         message = {
             'text': (f'Build completed: https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}'),
