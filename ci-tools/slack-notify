@@ -14,7 +14,7 @@ def warn(*args, **kwargs):
 
 
 class Main:
-    CANCELED_ICON = "\u20e0"  # COMBINING ENCLOSING CIRCLE BACKSLASH
+    CANCELED_ICON = "\u2205"  # EMPTY SET
     SUCCESS_ICON = "\u2713"   # CHECK MARK
     FAILURE_ICON = "\u2717"   # BALLOT X
 
