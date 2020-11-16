@@ -3,6 +3,7 @@ import os
 import sys
 import argparse
 import requests
+import json
 
 whoami = os.path.basename(sys.argv[0])
 whereami = os.path.dirname(os.path.realpath(__file__))
@@ -71,8 +72,9 @@ class Main:
         r = requests.post(
             options.url,
             headers={'Content-Type': 'application/json'},
-            data=message,
+            data=json.dumps(message),
         )
+        r.raise_for_status()
 
 
 if __name__ == '__main__':
