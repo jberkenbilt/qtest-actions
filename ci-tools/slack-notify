@@ -95,13 +95,15 @@ class Main:
         def json_dumps(data):   # XXX
             return json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
 
+        print(json_dumps(jobs_data))
+
         lines = []
         lines.append(
             f'*Completed <https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}|{self.github_workflow} #{self.github_run_number}>*')
         for j in jobs_data['jobs']:
-            if j['conclusion'] is None:
-                continue
-            lines.append(f'<{j["html_url"]}|{j["name"]}> {j["started_at"]} {j["completed_at"]} {j["conclusion"]}')
+#            if j['conclusion'] is None:
+#                continue
+            lines.append(f'<{j["html_url"]}|{j["name"]}> {j["started_at"]} {j["completed_at"]} {j["conclusion"]} {j["status"]}')
 
         lines.extend([
             f'• Repository: `{self.github_repository}`',
