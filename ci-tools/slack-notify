@@ -94,9 +94,12 @@ class Main:
         r.raise_for_status()
         return json.loads(r.text)
 
+    def parse_datetime(self, dt_str):
+        return datetime.strptime(dt_str.replace('Z', ''), "%Y-%m-%dT%H:%M:%S")
+
     def duration(self, start, end):
-        start_time = datetime.fromisoformat(start.replace('Z', '+00:00'))
-        end_time = datetime.fromisoformat(end.replace('Z', '+00:00'))
+        start_time = self.parse_datetime(start)
+        end_time = self.parse_datetime(end)
         duration = (end_time - start_time).seconds
         seconds = duration
         minutes = 0
@@ -143,7 +146,7 @@ class Main:
             else:
                 any_canceled = True
             duration = self.duration(j['started_at'], j['completed_at'])
-            lines.append(f'{icon} <{j["html_url"]}|{j["name"]}> {duration} {j["conclusion"]} {j["status"]}')
+            lines.append(f'{icon} <{j["html_url"]}|{j["name"]}> {duration} {j["conclusion"]}')
 
         overall = None
         if any_failure:
