@@ -1,0 +1,16 @@
+# action.yml
+name: 'Potato'
+description: 'Test action'
+inputs:
+  i1:
+    description: 'an input'
+    required: false
+    default: 'salad'
+outputs:
+  o1:
+    description: 'an output'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.i1 }}
