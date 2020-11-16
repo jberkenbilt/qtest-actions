@@ -12,7 +12,8 @@ jobs:
           repository: adventhp/adventhp-devtools
           token: ${{ secrets.CI_TOKEN }}
           path: adventhp-devtools
-      - run: adventhp-devtools/slack-notify ${{ secrets.SLACK }}
+          ref: refs/heads/ejb/work
+      - run: adventhp-devtools/ci-tools/slack-notify ${{ secrets.SLACK }}
   Linux:
     runs-on: ubuntu-latest
     needs: Start
