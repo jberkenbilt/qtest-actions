@@ -80,7 +80,7 @@ class Main:
         r.raise_for_status()
 
     def gh_get(self, url):
-        r = requests.get(f'https://api.github.com/{url}',
+        r = requests.get(url,
                          headers={
                              'Accept': 'application/vnd.github.v3+json',
                              'Authorization': f'token {self.token}'
@@ -89,11 +89,29 @@ class Main:
         return json.loads(r.text)
 
     def post_complete(self, options):
-        data = self.gh_get(f'repos/{self.github_repository}/actions/runs/{self.github_run_id}')
+        data = self.gh_get(f'https://api.github.com/repos/{self.github_repository}/actions/runs/{self.github_run_id}')
+        jobs_data = self.gh_get(data['jobs_url'])
 
         def json_dumps(data):   # XXX
             return json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
-        print(json_dumps(data))
+
+        lines = []
+        lines.append(
+            f'*Completed <https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}|{self.github_workflow} #{self.github_run_number}>*')
+        for j in jobs_data['jobs']:
+            if j['conclusion'] is None:
+                continue
+            lines.append(f'<{j["html_url"]}|{j["name"]}> {j["started_at"]} {j["completed_at"]} {j["conclusion"]}')
+
+        lines.extend([
+            f'• Repository: `{self.github_repository}`',
+            f'• Actor: `{self.github_actor}`',
+            f'• Event: `{self.github_event_name}`',
+            f'• Ref: <https://github.com/{self.github_repository}/tree/{self.github_ref}|{self.github_ref}>',
+            f'• Sha: <https://github.com/{self.github_repository}/commit/{self.github_sha}|{self.github_sha}>',
+        ])
+
+
 
         message = {
             'text': (f'Build completed: https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}'),
@@ -102,14 +120,7 @@ class Main:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"""
-*Starting <https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}|{self.github_workflow} #{self.github_run_number}>*
-• Repository: `{self.github_repository}`
-• Actor: `{self.github_actor}`
-• Event: `{self.github_event_name}`
-• Ref: <https://github.com/{self.github_repository}/tree/{self.github_ref}|{self.github_ref}>
-• Sha: <https://github.com/{self.github_repository}/commit/{self.github_sha}|{self.github_sha}>
-"""
+                        "text": "\n".join(lines),
                     }
                 }
             ]
