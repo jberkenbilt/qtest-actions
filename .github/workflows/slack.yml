@@ -46,6 +46,5 @@ jobs:
       - Canceled
     runs-on: ubuntu-latest
     steps:
-    steps:
       - uses: actions/checkout@v2
       - run: ci-tools/slack-notify --complete --url ${{ secrets.SLACK }} --token ${{ secrets.GITHUB_TOKEN }}
