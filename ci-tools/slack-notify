@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+import os
+import sys
+import argparse
+import requests
+
+whoami = os.path.basename(sys.argv[0])
+whereami = os.path.dirname(os.path.realpath(__file__))
+
+
+def warn(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
+class Main:
+    def main(self, args=sys.argv[1:], prog=whoami):
+        options = self.parse_args(args, prog)
+        self.top(options)
+
+    def parse_args(self, args, prog):
+        parser = argparse.ArgumentParser(
+            prog=prog,
+            description='post to slack',
+        )
+        parser.add_argument('--url',
+                            help='slack URL',
+                            required=True)
+        parser.add_argument('--token',
+                            help='github token')
+        mxg = parser.add_mutually_exclusive_group(required=False)
+        mxg.add_argument('--start',
+                         help='report workflow start',
+                         action='store_true', default=False)
+        mxg.add_argument('--complete',
+                         help='report workflow complete',
+                         action='store_true', default=False)
+        options = parser.parse_args(args)
+        if options.complete and not options.token:
+            sys.exit(f'{whoami}: --token is required with --complete')
+        return options
+
+    def top(self, options):
+        github_repository = os.environ.get('GITHUB_REPOSITORY', '')
+        github_run_id = os.environ.get('GITHUB_RUN_ID', '')
+        github_ref = os.environ.get('GITHUB_REF', '')
+        github_sha = os.environ.get('GITHUB_SHA', '')
+        github_actor = os.environ.get('GITHUB_ACTOR', '')
+        github_event_name = os.environ.get('GITHUB_EVENT_NAME', '')
+        github_run_number = os.environ.get('GITHUB_RUN_NUMBER', '')
+        github_workflow = os.environ.get('GITHUB_WORKFLOW', '')
+
+        message = {
+            'text': (f'Build started: https://github.com/{github_repository}/actions/runs/{github_run_id}'),
+            'blocks': [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"""
+*Starting <https://github.com/{github_repository}/actions/runs/{github_run_id}|{github_workflow} #{github_run_number}>*
+• Repository: `{github_repository}`
+• Actor: `{github_actor}`
+• Event: `{github_event_name}`
+• Ref: <https://github.com/{github_repository}/tree/{github_ref}|{github_ref}>
+• Sha: <https://github.com/{github_repository}/commit/{github_sha}|{github_sha}>
+"""
+                    }
+                }
+            ]
+        }
+        r = requests.post(
+            options.url,
+            headers={'Content-Type': 'application/json'},
+            data=message,
+        )
+
+
+if __name__ == '__main__':
+    try:
+        Main().main()
+    except KeyboardInterrupt:
+        exit(130)
