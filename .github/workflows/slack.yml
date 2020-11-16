@@ -33,7 +33,9 @@ jobs:
   Canceled:
     runs-on: ubuntu-latest
 #    if: ${{ false }}
-    needs: Start
+    needs:
+      - Start
+      - Skipped
     steps:
       - run: 'sleep 360'
   Slack:
