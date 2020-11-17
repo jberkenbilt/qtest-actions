@@ -156,7 +156,7 @@ class Main:
         data = self.gh_get(f'https://api.github.com/repos/{self.github_repository}/actions/runs/{self.github_run_id}')
         print(json_dumps(data))
         jobs_data = self.gh_get(data['jobs_url'])
-        print(json_dumps(job_data))
+        print(json_dumps(jobs_data))
 
         any_canceled = False
         any_success = False
