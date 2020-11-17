@@ -14,6 +14,11 @@ def warn(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
+# XXX
+def json_dumps(data):
+    return json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
+
+
 class Main:
     def main(self, args=sys.argv[1:], prog=whoami):
         options = self.parse_args(args, prog)
@@ -25,6 +30,10 @@ class Main:
         self.github_event_name = os.environ.get('GITHUB_EVENT_NAME', '')
         self.github_run_number = os.environ.get('GITHUB_RUN_NUMBER', '')
         self.github_workflow = os.environ.get('GITHUB_WORKFLOW', '')
+        # XXX
+        for k, v in os.environ.items():
+            print(f'XXX {k}={v}')
+        # /XXX
         if options.start:
             self.post_start(options)
         else:
@@ -145,7 +154,9 @@ class Main:
 
     def post_complete(self, options):
         data = self.gh_get(f'https://api.github.com/repos/{self.github_repository}/actions/runs/{self.github_run_id}')
+        print(json_dumps(data))
         jobs_data = self.gh_get(data['jobs_url'])
+        print(json_dumps(job_data))
 
         any_canceled = False
         any_success = False
