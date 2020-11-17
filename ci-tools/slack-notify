@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-import os
-import sys
 import argparse
-import requests
 import json
+import os
+import re
+import requests
+import sys
 from datetime import datetime
 
 whoami = os.path.basename(sys.argv[0])
@@ -63,6 +64,20 @@ class Main:
         return options
 
     def get_context(self):
+        ref_link = (f'https://github.com/{self.github_repository}/'
+                    f'tree/{self.github_ref}')
+        ref_text = f'{self.github_ref}'
+
+        if self.github_event_name == 'pull_request':
+            m = re.search(r'refs/pull/(\d+)/', self.github_ref)
+            if m:
+                ref_link = (f'https://github.com/{self.github_repository}/'
+                            f'pull/{m.group(1)}')
+                base_ref = os.environ.get('GITHUB_BASE_REF', '')
+                ref_text = f'{base_ref} #{m.group(1)}'
+        else:
+            ref_text.replace('refs/heads/', 'branch ')
+            ref_text.replace('refs/tags/', 'tags ')
         elements = [
             {
                 "type": "image",
@@ -75,8 +90,7 @@ class Main:
                     f'`{self.github_event_name}` by `{self.github_actor}` ┃ '
                     f'<https://github.com/{self.github_repository}|'
                     f'{self.github_repository}> ┃ '
-                    f'<https://github.com/{self.github_repository}/'
-                    f'tree/{self.github_ref}|{self.github_ref}> ┃ '
+                    f'<{ref_link}|{ref_text}> ┃ '
                     f'<https://github.com/{self.github_repository}/'
                     f'commit/{self.github_sha}|{self.github_sha[0:10]}>'),
             },
