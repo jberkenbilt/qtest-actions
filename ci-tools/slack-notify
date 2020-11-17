@@ -4,7 +4,6 @@ import sys
 import argparse
 import requests
 import json
-import re
 from datetime import datetime
 
 whoami = os.path.basename(sys.argv[0])
@@ -58,22 +57,34 @@ class Main:
             sys.exit(f'{whoami}: --token is required with --complete')
         return options
 
+    def add_context(self, lines):
+        lines.extend([
+            f'• Repository: `{self.github_repository}`',
+            f'• Actor: `{self.github_actor}`',
+            f'• Event: `{self.github_event_name}`',
+            (f'• Ref: <https://github.com/{self.github_repository}/'
+             f'tree/{self.github_ref}|{self.github_ref}>'),
+            (f'• Sha: <https://github.com/{self.github_repository}/'
+             f'commit/{self.github_sha}|{self.github_sha}>'),
+        ])
+
     def post_start(self, options):
+        lines = (
+            '*Starting <https://github.com/{self.github_repository}/'
+            'actions/runs/'
+            f'{self.github_run_id}|'
+            f'{self.github_workflow} #{self.github_run_number}>*')
+        self.add_context(lines)
         message = {
-            'text': (f'Build started: https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}'),
+            'text': (f'Build started: https://github.com/'
+                     f'{self.github_repository}/actions/runs/'
+                     f'{self.github_run_id}'),
             'blocks': [
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"""
-*Starting <https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}|{self.github_workflow} #{self.github_run_number}>*
-• Repository: `{self.github_repository}`
-• Actor: `{self.github_actor}`
-• Event: `{self.github_event_name}`
-• Ref: <https://github.com/{self.github_repository}/tree/{self.github_ref}|{self.github_ref}>
-• Sha: <https://github.com/{self.github_repository}/commit/{self.github_sha}|{self.github_sha}>
-"""
+                        "text": "\n".join(lines),
                     }
                 }
             ]
@@ -121,11 +132,6 @@ class Main:
         data = self.gh_get(f'https://api.github.com/repos/{self.github_repository}/actions/runs/{self.github_run_id}')
         jobs_data = self.gh_get(data['jobs_url'])
 
-        def json_dumps(data):   # XXX
-            return json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
-
-        print(json_dumps(jobs_data))
-
         any_canceled = False
         any_success = False
         any_failure = False
@@ -162,13 +168,7 @@ class Main:
         # Success: CAVO Build #49
         # Duraton: 3m 49s
 
-        lines.extend([
-            f'• Repository: `{self.github_repository}`',
-            f'• Actor: `{self.github_actor}`',
-            f'• Event: `{self.github_event_name}`',
-            f'• Ref: <https://github.com/{self.github_repository}/tree/{self.github_ref}|{self.github_ref}>',
-            f'• Sha: <https://github.com/{self.github_repository}/commit/{self.github_sha}|{self.github_sha}>',
-        ])
+        self.add_context(lines)
 
         message = {
             'text': (f'Build completed: https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}'),
