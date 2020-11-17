@@ -18,7 +18,7 @@ jobs:
   Failing:
     runs-on: ubuntu-latest
     needs: Start
-    if: ${{ false }}
+#    if: ${{ false }}
     steps:
       - name: 'Build'
         run: 'false'
@@ -32,7 +32,7 @@ jobs:
       - run: 'true'
   Canceled:
     runs-on: ubuntu-latest
-    if: ${{ false }}
+#    if: ${{ false }}
     needs: Start
     steps:
       - run: 'sleep 360'

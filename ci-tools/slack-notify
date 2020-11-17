@@ -15,10 +15,6 @@ def warn(*args, **kwargs):
 
 
 class Main:
-    CANCELED_ICON = "\u2205"  # EMPTY SET
-    SUCCESS_ICON = "\u2713"   # CHECK MARK
-    FAILURE_ICON = "\u2717"   # BALLOT X
-
     def main(self, args=sys.argv[1:], prog=whoami):
         options = self.parse_args(args, prog)
         self.github_repository = os.environ.get('GITHUB_REPOSITORY', '')
@@ -57,44 +53,31 @@ class Main:
             sys.exit(f'{whoami}: --token is required with --complete')
         return options
 
-    def add_context(self, lines):
-        lines.extend([
-            f'• Repository: `{self.github_repository}`',
-            f'• Actor: `{self.github_actor}`',
-            f'• Event: `{self.github_event_name}`',
-            (f'• Ref: <https://github.com/{self.github_repository}/'
-             f'tree/{self.github_ref}|{self.github_ref}>'),
-            (f'• Sha: <https://github.com/{self.github_repository}/'
-             f'commit/{self.github_sha}|{self.github_sha}>'),
-        ])
-
-    def post_start(self, options):
-        lines = [(
-            '*Starting <https://github.com/{self.github_repository}/'
-            'actions/runs/'
-            f'{self.github_run_id}|'
-            f'{self.github_workflow} #{self.github_run_number}>*')]
-        self.add_context(lines)
-        message = {
-            'text': (f'Build started: https://github.com/'
-                     f'{self.github_repository}/actions/runs/'
-                     f'{self.github_run_id}'),
-            'blocks': [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "\n".join(lines),
-                    }
-                }
-            ]
-        }
-        r = requests.post(
-            options.url,
-            headers={'Content-Type': 'application/json'},
-            data=json.dumps(message),
-        )
-        r.raise_for_status()
+    def get_context(self):
+        elements = [
+            {
+                "type": "image",
+                "image_url": "https://github.githubassets.com/favicon.ico",
+                "alt_text": "github",
+            },
+            {
+                "type": "mrkdwn",
+                "text": (
+                    f'`{self.github_event_name}` by `{self.github_actor}` ┃ '
+                    f'<https://github.com/{self.github_repository}|'
+                    f'{self.github_repository}> ┃ '
+                    f'<https://github.com/{self.github_repository}/'
+                    f'tree/{self.github_ref}|{self.github_ref}> ┃ '
+                    f'<https://github.com/{self.github_repository}/'
+                    f'commit/{self.github_sha}|{self.github_sha[0:10]}>'),
+            },
+        ]
+        return [
+            {
+                "type": "context",
+                "elements": elements,
+            },
+        ]
 
     def gh_get(self, url):
         r = requests.get(url,
@@ -128,6 +111,38 @@ class Main:
                 result = f'{hours}h ' + result
         return result
 
+    def post_start(self, options):
+        lines = [(
+            f'*⌛ Started: <https://github.com/{self.github_repository}/'
+            f'actions/runs/{self.github_run_id}|'
+            f'{self.github_workflow} #{self.github_run_number}>*')]
+        context = self.get_context()
+        message = {
+            'text': (f'Build started: https://github.com/'
+                     f'{self.github_repository}/actions/runs/'
+                     f'{self.github_run_id}'),
+            'blocks': [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "\n".join(lines),
+                    }
+                },
+                *context,
+                {
+                    "type": "divider",
+                },
+            ]
+        }
+        print(message)
+        r = requests.post(
+            options.url,
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(message),
+        )
+        r.raise_for_status()
+
     def post_complete(self, options):
         data = self.gh_get(f'https://api.github.com/repos/{self.github_repository}/actions/runs/{self.github_run_id}')
         jobs_data = self.gh_get(data['jobs_url'])
@@ -135,41 +150,43 @@ class Main:
         any_canceled = False
         any_success = False
         any_failure = False
-        lines = []
-        lines.append(
-            f'*Completed <https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}|{self.github_workflow} #{self.github_run_number}>*')
+        jobs = []
         for j in jobs_data['jobs']:
             if j['conclusion'] is None:
                 continue
             conclusion = j['conclusion']
-            icon = Main.CANCELED_ICON
+            icon = '∅'
             if 'success' == conclusion:
-                icon = Main.SUCCESS_ICON
+                icon = '✓'
                 any_success = True
             elif 'failure' == conclusion:
-                icon = Main.FAILURE_ICON
+                icon = '✗'
                 any_failure = True
             else:
                 any_canceled = True
             duration = self.duration(j['started_at'], j['completed_at'])
-            lines.append(f'{icon} <{j["html_url"]}|{j["name"]}> {duration} {j["conclusion"]}')
+            conclusion = j['conclusion'].replace('ancelled', 'anceled')
+            jobs.append(f'{icon} {conclusion.capitalize()}'
+                        f' <{j["html_url"]}|{j["name"]}> ({duration})')
 
-        overall = None
+        lines = []
+        overall = '\u2022 Completed'
         if any_failure:
-            overall = f'{Main.FAILURE_ICON} Failed'
+            overall = '🗑️ Failure'
         elif any_canceled:
-            overall = f'{Main.CANCELED_ICON} Canceled'
+            overall = '✂️ Canceled'
         elif any_success:
-            overall = f'{Main.SUCCESS_ICON} Succeeded'
-        overall_duration = self.duration(data['created_at'], data['updated_at'])
-        if overall is not None:
-            lines.append(f'Overall status: {overall}, {overall_duration}')
-
-        # Success: CAVO Build #49
-        # Duraton: 3m 49s
-
-        self.add_context(lines)
-
+            overall = '🚀 Success'
+        overall_duration = self.duration(data['created_at'],
+                                         data['updated_at'])
+        lines.extend([
+            (f'*{overall}: '
+             f'<https://github.com/{self.github_repository}/'
+             f'actions/runs/{self.github_run_id}|'
+             f'{self.github_workflow} #{self.github_run_number}>*'
+             f' ({overall_duration})'),
+        ])
+        context = self.get_context()
         message = {
             'text': (f'Build completed: https://github.com/{self.github_repository}/actions/runs/{self.github_run_id}'),
             'blocks': [
@@ -179,7 +196,18 @@ class Main:
                         "type": "mrkdwn",
                         "text": "\n".join(lines),
                     }
-                }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "\n".join(jobs),
+                    }
+                },
+                *context,
+                {
+                    "type": "divider",
+                },
             ]
         }
         r = requests.post(
