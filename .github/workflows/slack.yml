@@ -3,20 +3,29 @@ on:
   push:
     branches:
     - test/slack
+  pull_request:
 jobs:
+  Start:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ci-tools/slack-notify --start --url ${{ secrets.SLACK }}
   Linux:
     runs-on: ubuntu-latest
+    needs: Start
     steps:
       - name: 'Build'
         run: 'true'
   Failing:
     runs-on: ubuntu-latest
+    needs: Start
     if: ${{ false }}
     steps:
       - name: 'Build'
         run: 'false'
   Skipped:
     runs-on: ubuntu-latest
+    if: ${{ false }}
     needs:
       - Linux
       - Failing
@@ -24,6 +33,8 @@ jobs:
       - run: 'true'
   Canceled:
     runs-on: ubuntu-latest
+    if: ${{ false }}
+    needs: Start
     steps:
       - run: 'sleep 360'
   Slack:
@@ -36,8 +47,5 @@ jobs:
       - Canceled
     runs-on: ubuntu-latest
     steps:
-      - name: Slack Workflow Notification
-        uses: Gamesight/slack-workflow-status@master
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          slack_webhook_url: ${{ secrets.SLACK }}
+      - uses: actions/checkout@v2
+      - run: ci-tools/slack-notify --complete --url ${{ secrets.SLACK }} --token ${{ secrets.GITHUB_TOKEN }}

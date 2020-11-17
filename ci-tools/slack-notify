@@ -1,0 +1,238 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import os
+import re
+import requests
+import sys
+from datetime import datetime
+
+whoami = os.path.basename(sys.argv[0])
+
+
+class Main:
+    def main(self, args=sys.argv[1:], prog=whoami):
+        options = self.parse_args(args, prog)
+        self.github_repository = os.environ.get('GITHUB_REPOSITORY', '')
+        self.github_run_id = os.environ.get('GITHUB_RUN_ID', '')
+        self.github_ref = os.environ.get('GITHUB_REF', '')
+        self.github_sha = os.environ.get('GITHUB_SHA', '')
+        self.github_actor = os.environ.get('GITHUB_ACTOR', '')
+        self.github_event_name = os.environ.get('GITHUB_EVENT_NAME', '')
+        self.github_run_number = os.environ.get('GITHUB_RUN_NUMBER', '')
+        self.github_workflow = os.environ.get('GITHUB_WORKFLOW', '')
+        if options.start:
+            self.post_start(options)
+        else:
+            self.token = options.token
+            self.post_complete(options)
+
+    def parse_args(self, args, prog):
+        parser = argparse.ArgumentParser(
+            prog=prog,
+            description='post to slack',
+        )
+        parser.add_argument('--url',
+                            help='slack URL',
+                            required=True)
+        parser.add_argument('--token',
+                            help='github token')
+        mxg = parser.add_mutually_exclusive_group(required=True)
+        mxg.add_argument('--start',
+                         help='report workflow start',
+                         action='store_true', default=False)
+        mxg.add_argument('--complete',
+                         help='report workflow complete',
+                         action='store_true', default=False)
+        options = parser.parse_args(args)
+        if options.complete and not options.token:
+            sys.exit(f'{whoami}: --token is required with --complete')
+        return options
+
+    def get_context(self):
+        ref_link = (f'https://github.com/{self.github_repository}/'
+                    f'tree/{self.github_ref}')
+        ref_text = self.github_ref
+
+        if self.github_event_name == 'pull_request':
+            m = re.search(r'refs/pull/(\d+)/', self.github_ref)
+            if m:
+                ref_link = (f'https://github.com/{self.github_repository}/'
+                            f'pull/{m.group(1)}')
+                base_ref = os.environ.get('GITHUB_BASE_REF', '')
+                ref_text = f'{base_ref} #{m.group(1)}'
+        else:
+            ref_text = ref_text.replace('refs/heads/', 'branch ')
+            ref_text = ref_text.replace('refs/tags/', 'tags ')
+        elements = [
+            {
+                "type": "image",
+                "image_url": "https://github.githubassets.com/favicon.ico",
+                "alt_text": "github",
+            },
+            {
+                "type": "mrkdwn",
+                "text": (
+                    f'`{self.github_event_name}` by `{self.github_actor}` ┃ '
+                    f'<https://github.com/{self.github_repository}|'
+                    f'{self.github_repository}> ┃ '
+                    f'<{ref_link}|{ref_text}> ┃ '
+                    f'<https://github.com/{self.github_repository}/'
+                    f'commit/{self.github_sha}|{self.github_sha[0:10]}>'),
+            },
+        ]
+        return [
+            {
+                "type": "context",
+                "elements": elements,
+            },
+        ]
+
+    def gh_get(self, url):
+        r = requests.get(url,
+                         headers={
+                             'Accept': 'application/vnd.github.v3+json',
+                             'Authorization': f'token {self.token}'
+                         })
+        r.raise_for_status()
+        return json.loads(r.text)
+
+    def parse_datetime(self, dt_str):
+        return datetime.strptime(dt_str.replace('Z', ''), "%Y-%m-%dT%H:%M:%S")
+
+    def duration(self, start, end):
+        start_time = self.parse_datetime(start)
+        end_time = self.parse_datetime(end)
+        duration = (end_time - start_time).seconds
+        seconds = duration
+        minutes = 0
+        hours = 0
+        if seconds >= 60:
+            minutes = int(seconds / 60)
+            seconds = seconds % 60
+        if minutes >= 60:
+            hours = int(minutes / 60)
+            minutes = minutes % 60
+        result = f'{seconds}s'
+        if minutes > 0 or hours > 0:
+            result = f'{minutes}m ' + result
+            if hours > 0:
+                result = f'{hours}h ' + result
+        return result
+
+    def post_start(self, options):
+        lines = [(
+            f'*⌛ Started: <https://github.com/{self.github_repository}/'
+            f'actions/runs/{self.github_run_id}|'
+            f'{self.github_workflow} #{self.github_run_number}>*')]
+        context = self.get_context()
+        message = {
+            'text': (f'Build started: https://github.com/'
+                     f'{self.github_repository}/actions/runs/'
+                     f'{self.github_run_id}'),
+            'blocks': [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "\n".join(lines),
+                    }
+                },
+                *context,
+                {
+                    "type": "divider",
+                },
+            ]
+        }
+        print(message)
+        r = requests.post(
+            options.url,
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(message),
+        )
+        r.raise_for_status()
+
+    def post_complete(self, options):
+        data = self.gh_get('https://api.github.com/repos/'
+                           f'{self.github_repository}/'
+                           f'actions/runs/{self.github_run_id}')
+        jobs_data = self.gh_get(data['jobs_url'])
+
+        any_canceled = False
+        any_success = False
+        any_failure = False
+        jobs = []
+        for j in jobs_data['jobs']:
+            if j['conclusion'] is None:
+                continue
+            conclusion = j['conclusion']
+            icon = '∅'
+            if 'success' == conclusion:
+                icon = '✓'
+                any_success = True
+            elif 'failure' == conclusion:
+                icon = '✗'
+                any_failure = True
+            else:
+                any_canceled = True
+            duration = self.duration(j['started_at'], j['completed_at'])
+            conclusion = j['conclusion'].replace('ancelled', 'anceled')
+            jobs.append(f'{icon} {conclusion.capitalize()}'
+                        f' <{j["html_url"]}|{j["name"]}> ({duration})')
+
+        lines = []
+        overall = '\u2022 Completed'
+        if any_failure:
+            overall = '🗑️ Failure'
+        elif any_canceled:
+            overall = '✂️ Canceled'
+        elif any_success:
+            overall = '🚀 Success'
+        overall_duration = self.duration(data['created_at'],
+                                         data['updated_at'])
+        lines.extend([
+            (f'*{overall}: '
+             f'<https://github.com/{self.github_repository}/'
+             f'actions/runs/{self.github_run_id}|'
+             f'{self.github_workflow} #{self.github_run_number}>*'
+             f' ({overall_duration})'),
+        ])
+        context = self.get_context()
+        message = {
+            'text': ('Build completed: https://github.com/'
+                     f'{self.github_repository}/actions/runs/'
+                     f'{self.github_run_id}'),
+            'blocks': [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "\n".join(lines),
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "\n".join(jobs),
+                    }
+                },
+                *context,
+                {
+                    "type": "divider",
+                },
+            ]
+        }
+        r = requests.post(
+            options.url,
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(message),
+        )
+        r.raise_for_status()
+
+
+if __name__ == '__main__':
+    try:
+        Main().main()
+    except KeyboardInterrupt:
+        exit(130)
