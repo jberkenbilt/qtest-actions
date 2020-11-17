@@ -3,6 +3,7 @@ on:
   push:
     branches:
     - test/slack
+  pull_request:
 jobs:
   Start:
     runs-on: ubuntu-latest
@@ -32,7 +33,7 @@ jobs:
       - run: 'true'
   Canceled:
     runs-on: ubuntu-latest
-#    if: ${{ false }}
+    if: ${{ false }}
     needs: Start
     steps:
       - run: 'sleep 360'
