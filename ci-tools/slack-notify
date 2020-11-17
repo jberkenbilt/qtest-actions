@@ -69,11 +69,11 @@ class Main:
         ])
 
     def post_start(self, options):
-        lines = (
+        lines = [(
             '*Starting <https://github.com/{self.github_repository}/'
             'actions/runs/'
             f'{self.github_run_id}|'
-            f'{self.github_workflow} #{self.github_run_number}>*')
+            f'{self.github_workflow} #{self.github_run_number}>*')]
         self.add_context(lines)
         message = {
             'text': (f'Build started: https://github.com/'
