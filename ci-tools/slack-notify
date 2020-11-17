@@ -177,7 +177,7 @@ class Main:
                 any_canceled = True
             duration = self.duration(j['started_at'], j['completed_at'])
             conclusion = j['conclusion'].replace('ancelled', 'anceled')
-            jobs.append(f'{icon} {conclusion.capitalize()}'
+            jobs.append(f'{icon} {conclusion.capitalize()}:'
                         f' <{j["html_url"]}|{j["name"]}> ({duration})')
 
         lines = []
