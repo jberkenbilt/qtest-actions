@@ -5,6 +5,8 @@ on:
   push:
     branches:
     - test/ignore2
+    paths-ignore:
+      - 'ignore/**'
 
 jobs:
   Linux:
