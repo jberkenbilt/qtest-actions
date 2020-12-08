@@ -1,0 +1,13 @@
+# See also ignore1
+
+name: ignore2
+on:
+  push:
+    branches:
+    - test/ignore2
+
+jobs:
+  Linux:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ignore2: $GITHUB_SHA
