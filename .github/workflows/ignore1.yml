@@ -12,4 +12,4 @@ jobs:
   Linux:
     runs-on: ubuntu-latest
     steps:
-      - run: echo ignore1: $GITHUB_SHA
+      - run: "echo ignore1: $GITHUB_SHA"
