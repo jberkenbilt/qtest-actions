@@ -63,7 +63,7 @@ else
    CFLAGS=$oCFLAGS
 fi
 
-dnl NEW
+dnl CUSTOM
 
 POS_FMT=""
 for fmt in "%z" "%lld" "%I64d" "I64lld"; do
@@ -105,6 +105,8 @@ fi
 
 AC_MSG_WARN(CFLAGS = $CFLAGS)
 AC_MSG_WARN(POS_FMT = $POS_FMT)
+
+dnl END CUSTOM
 
 AC_OUTPUT
 
