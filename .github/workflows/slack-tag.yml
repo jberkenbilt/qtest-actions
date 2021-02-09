@@ -1,4 +1,4 @@
-name: slack
+name: slack-tag
 on:
   create:
 jobs:
