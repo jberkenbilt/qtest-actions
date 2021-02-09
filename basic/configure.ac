@@ -63,39 +63,6 @@ else
    CFLAGS=$oCFLAGS
 fi
 
-dnl CUSTOM
-
-POS_FMT=""
-for fmt in "%z" "%lld" "%I64d" "I64lld"; do
-  if test "$POS_FMT" = ""; then
-    AC_MSG_CHECKING(for whether to use $fmt)
-    AC_RUN_IFELSE([AC_LANG_PROGRAM(
-     [[
-        #include <stdio.h>
-        #include <string.h>
-     ]],
-     [[
-        long long int a = 123456789012345ll;
-        char s[30];
-        sprintf(s, "]$fmt[", a);
-        return (strcmp(s, "123456789012345") == 0) ? 0 : 1
-     ]]
-     )],
-     [POS_FMT=$fmt],[],[POS_FMT="%lld"])
-    if test "$POS_FMT" != ""; then
-       AC_MSG_RESULT(yes)
-    else
-       AC_MSG_RESULT(no)
-    fi
-  fi
-done
-if test "$POS_FMT" != ""; then
-  AC_DEFINE_UNQUOTED([POS_FMT], ["$POS_FMT"], [printf format for long long])
-fi
-if test "$Z" != ""; then
-  AC_DEFINE_UNQUOTED([Z], [1], [not used])
-fi
-
 AC_SUBST(WINDOWS_WMAIN_XLINK_FLAGS)
 AC_SUBST(WINDOWS_MAIN_XLINK_FLAGS)
 if test "$BUILDRULES" = "msvc"; then
@@ -103,11 +70,13 @@ if test "$BUILDRULES" = "msvc"; then
   WINDOWS_MAIN_XLINK_FLAGS="-link setargv.obj"
 fi
 
-AC_MSG_WARN(CFLAGS = $CFLAGS)
-AC_MSG_WARN(POS_FMT = $POS_FMT)
+dnl CUSTOM
+
+
 
 dnl END CUSTOM
 
+AC_MSG_WARN(CFLAGS = $CFLAGS)
 AC_OUTPUT
 
 cat config.h
