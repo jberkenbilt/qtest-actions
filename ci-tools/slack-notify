@@ -21,7 +21,9 @@ class Main:
         self.github_event_name = os.environ.get('GITHUB_EVENT_NAME', '')
         self.github_run_number = os.environ.get('GITHUB_RUN_NUMBER', '')
         self.github_workflow = os.environ.get('GITHUB_WORKFLOW', '')
-        if options.start:
+        if options.tag:
+            self.post_tag(options)
+        elif options.start:
             self.post_start(options)
         else:
             self.token = options.token
@@ -44,6 +46,9 @@ class Main:
         mxg.add_argument('--complete',
                          help='report workflow complete',
                          action='store_true', default=False)
+        mxg.add_argument('--tag',
+                         help='report tag creation',
+                         action='store_true', default=False)
         options = parser.parse_args(args)
         if options.complete and not options.token:
             sys.exit(f'{whoami}: --token is required with --complete')
@@ -53,6 +58,7 @@ class Main:
         ref_link = (f'https://github.com/{self.github_repository}/'
                     f'tree/{self.github_ref}')
         ref_text = self.github_ref
+        event = f'`{self.github_event_name}`'
 
         if self.github_event_name == 'pull_request':
             m = re.search(r'refs/pull/(\d+)/', self.github_ref)
@@ -61,9 +67,11 @@ class Main:
                             f'pull/{m.group(1)}')
                 base_ref = os.environ.get('GITHUB_BASE_REF', '')
                 ref_text = f'{base_ref} #{m.group(1)}'
+        elif self.github_event_name == 'create':
+            event = 'Tag created'
+            ref_text = ref_text.replace('refs/tags/', 'tag ')
         else:
             ref_text = ref_text.replace('refs/heads/', 'branch ')
-            ref_text = ref_text.replace('refs/tags/', 'tags ')
         elements = [
             {
                 "type": "image",
@@ -73,7 +81,7 @@ class Main:
             {
                 "type": "mrkdwn",
                 "text": (
-                    f'`{self.github_event_name}` by `{self.github_actor}` ┃ '
+                    f'{event} by `{self.github_actor}` ┃ '
                     f'<https://github.com/{self.github_repository}|'
                     f'{self.github_repository}> ┃ '
                     f'<{ref_link}|{ref_text}> ┃ '
@@ -152,6 +160,38 @@ class Main:
         )
         r.raise_for_status()
 
+    def post_tag(self, options):
+        lines = [(
+            f'*🏷️ Tag Created: <https://github.com/{self.github_repository}/'
+            f'actions/runs/{self.github_run_id}|'
+            f'{self.github_workflow} #{self.github_run_number}>*')]
+        context = self.get_context()
+        message = {
+            'text': (f'Tag created: https://github.com/'
+                     f'{self.github_repository}/actions/runs/'
+                     f'{self.github_run_id}'),
+            'blocks': [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "\n".join(lines),
+                    }
+                },
+                *context,
+                {
+                    "type": "divider",
+                },
+            ]
+        }
+        print(message)
+        r = requests.post(
+            options.url,
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(message),
+        )
+        r.raise_for_status()
+
     def post_complete(self, options):
         data = self.gh_get('https://api.github.com/repos/'
                            f'{self.github_repository}/'
@@ -166,14 +206,17 @@ class Main:
             if j['conclusion'] is None:
                 continue
             conclusion = j['conclusion']
-            icon = '∅'
+            icon = f'(? {conclusion})'
             if 'success' == conclusion:
                 icon = '✓'
                 any_success = True
             elif 'failure' == conclusion:
                 icon = '✗'
                 any_failure = True
+            elif 'skipped' == conclusion:
+                icon = '∅'
             else:
+                icon = '🞫'
                 any_canceled = True
             duration = self.duration(j['started_at'], j['completed_at'])
             conclusion = j['conclusion'].replace('ancelled', 'anceled')

@@ -1,0 +1,9 @@
+name: slack
+on:
+  create:
+jobs:
+  Tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ci-tools/slack-notify --tag --url ${{ secrets.SLACK }}
