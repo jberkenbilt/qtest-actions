@@ -68,8 +68,14 @@ class Main:
                 base_ref = os.environ.get('GITHUB_BASE_REF', '')
                 ref_text = f'{base_ref} #{m.group(1)}'
         elif self.github_event_name == 'create':
-            event = 'Tag created'
+            ref_text = ref_text.replace('refs/heads/', 'branch ')
             ref_text = ref_text.replace('refs/tags/', 'tag ')
+            if ref_text.startswith('tag'):
+                event = 'Tag created'
+            elif ref_text.startswith('branch'):
+                event = 'Branch created'
+            else:
+                event = 'Ref created'
         else:
             ref_text = ref_text.replace('refs/heads/', 'branch ')
         elements = [
@@ -161,8 +167,14 @@ class Main:
         r.raise_for_status()
 
     def post_tag(self, options):
+        if not self.github_ref.startswith('refs/tags/'):
+            # For now, we only care about tag creation, though the
+            # code in get_context handles branch creation in the
+            # messages.
+            return
         lines = [(
-            f'*🏷️ Tag Created: <https://github.com/{self.github_repository}/'
+            '*🏷️ Tag Created:'
+            f' <https://github.com/{self.github_repository}/'
             f'actions/runs/{self.github_run_id}|'
             f'{self.github_workflow} #{self.github_run_number}>*')]
         context = self.get_context()
