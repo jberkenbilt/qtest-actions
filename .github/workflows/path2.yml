@@ -1,4 +1,4 @@
-name: qtest build
+name: path2
 on:
   push:
     paths:
