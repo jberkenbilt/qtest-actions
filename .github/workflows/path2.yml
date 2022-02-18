@@ -2,7 +2,8 @@ name: qtest build
 on:
   push:
     paths:
-      - path2
+      - .github/workflows/path2.yml
+      - 'path2/**'
 jobs:
   Linux:
     runs-on: ubuntu-latest
