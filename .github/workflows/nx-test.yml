@@ -1,0 +1,21 @@
+# This is testing how it might look to deploy to the same environment
+# from different source banches using nx.
+name: nx-test
+on:
+  push:
+    branches:
+    - nx/*
+    - nx-main
+jobs:
+  Linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # So Nx can look at history
+          fetch-depth: 0
+      - uses: nrwl/nx-set-shas@v2
+      - run: |
+          echo "BASE: ${{ env.NX_BASE }}"
+          echo "HEAD: ${{ env.NX_HEAD }}"
+          git diff ${{ env.NX_BASE }} ${{ env.NX_HEAD }}
