@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #if defined _WIN32 || defined __CYGWIN__
 # define QPDF_DLL__VISIBLE __declspec(dllexport)
 # define QPDF_DLL__HIDDEN
@@ -44,4 +46,14 @@ class QPDF_DLL_CLASS Y: public X
 
     QPDF_DLL
     void f();
+};
+
+class QPDF_DLL_CLASS Z: public std::runtime_error
+{
+  public:
+    QPDF_DLL
+    Z();
+
+    QPDF_DLL
+    virtual ~Z() = default;
 };

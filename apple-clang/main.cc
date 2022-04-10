@@ -3,7 +3,11 @@
 
 int main()
 {
-    f();
+    try {
+        f();
+    } catch(std::runtime_error& e) {
+        std::cout << "caught exception: " << e.what() << std::endl;
+    }
     Y x;
     X* xp = &x;
     xp->f();
