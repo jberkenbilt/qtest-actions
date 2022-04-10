@@ -5,7 +5,7 @@ int main()
 {
     try {
         f();
-    } catch(std::runtime_error& e) {
+    } catch(Z& e) {
         std::cout << "caught exception: " << e.what() << std::endl;
     }
     Y x;
