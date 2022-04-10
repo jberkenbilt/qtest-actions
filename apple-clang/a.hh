@@ -1,5 +1,9 @@
 #include <stdexcept>
 
+// This example reproduces that you need visibility attributes in
+// clang/macos all the time, not just when building the DLL like in
+// Windows.
+
 #if defined _WIN32 || defined __CYGWIN__
 # define QPDF_DLL__VISIBLE __declspec(dllexport)
 # define QPDF_DLL__HIDDEN
