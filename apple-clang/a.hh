@@ -14,15 +14,22 @@
 # define BRANCH1 "3"
 #endif
 
-#define QPDF_DLL QPDF_DLL__VISIBLE
-#if defined _WIN32 || defined __CYGWIN__
+#ifdef Z_EXPORTS
+# define QPDF_DLL QPDF_DLL__VISIBLE
+# if defined _WIN32 || defined __CYGWIN__
+#  define QPDF_DLL_PRIVATE
+#  define QPDF_DLL_CLASS
+#  define BRANCH2 "4"
+# else
+#  define QPDF_DLL_PRIVATE QPDF_DLL__HIDDEN
+#  define QPDF_DLL_CLASS QPDF_DLL__VISIBLE
+#  define BRANCH2 "5"
+# endif
+#else
+# define QPDF_DLL
 # define QPDF_DLL_PRIVATE
 # define QPDF_DLL_CLASS
-# define BRANCH2 "4"
-#else
-# define QPDF_DLL_PRIVATE QPDF_DLL__HIDDEN
-# define QPDF_DLL_CLASS QPDF_DLL__VISIBLE
-# define BRANCH2 "5"
+# define BRANCH2 "6"
 #endif
 
 QPDF_DLL

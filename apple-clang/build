@@ -1,5 +1,6 @@
 #!/bin/sh
+set -ex
 cd $(dirname $0)
 cmake -S . -B z
-cmake --build z
+cmake --build z --verbose
 ./z/main

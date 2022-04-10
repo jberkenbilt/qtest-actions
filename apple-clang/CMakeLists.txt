@@ -8,5 +8,6 @@ set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 add_library(l1 SHARED a.cc)
+target_compile_definitions(l1 PRIVATE Z_EXPORTS)
 add_executable(main main.cc)
 target_link_libraries(main l1)
