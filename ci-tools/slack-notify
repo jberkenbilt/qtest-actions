@@ -292,7 +292,6 @@ class Main:
     def post_message(self, options):
         lines = [(
             '*💬️ Message:'
-            options.message
             f' <https://github.com/{self.github_repository}/'
             f'actions/runs/{self.github_run_id}|'
             f'{self.github_workflow} #{self.github_run_number}>*')]
@@ -307,6 +306,13 @@ class Main:
                     "text": {
                         "type": "mrkdwn",
                         "text": "\n".join(lines),
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": options.message,
                     }
                 },
                 *context,
