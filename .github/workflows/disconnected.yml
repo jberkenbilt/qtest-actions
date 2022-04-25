@@ -1,0 +1,11 @@
+name: qtest build
+on:
+  push:
+    branches:
+    - disconnected
+jobs:
+  Linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: echo Hello from disconnected branch
