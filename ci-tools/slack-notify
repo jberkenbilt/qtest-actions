@@ -291,7 +291,7 @@ class Main:
 
     def post_message(self, options):
         lines = [(
-            '*💬️ Message:'
+            '*📢️ Announcement from '
             f' <https://github.com/{self.github_repository}/'
             f'actions/runs/{self.github_run_id}|'
             f'{self.github_workflow} #{self.github_run_number}>*')]
