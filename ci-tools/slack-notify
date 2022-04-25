@@ -25,7 +25,9 @@ class Main:
             self.post_tag(options)
         elif options.start:
             self.post_start(options)
-        else:
+        elif options.message:
+            self.post_message(options)
+        elif options.complete:
             self.token = options.token
             self.post_complete(options)
 
@@ -49,6 +51,8 @@ class Main:
         mxg.add_argument('--tag',
                          help='report tag creation',
                          action='store_true', default=False)
+        mxg.add_argument('--message',
+                         help='post a message')
         options = parser.parse_args(args)
         if options.complete and not options.token:
             sys.exit(f'{whoami}: --token is required with --complete')
@@ -284,6 +288,41 @@ class Main:
             data=json.dumps(message),
         )
         r.raise_for_status()
+
+    def post_message(self, options):
+        lines = [(
+            '*💬️ Message:'
+            options.message
+            f' <https://github.com/{self.github_repository}/'
+            f'actions/runs/{self.github_run_id}|'
+            f'{self.github_workflow} #{self.github_run_number}>*')]
+        context = self.get_context()
+        message = {
+            'text': (f'Message: https://github.com/'
+                     f'{self.github_repository}/actions/runs/'
+                     f'{self.github_run_id}'),
+            'blocks': [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "\n".join(lines),
+                    }
+                },
+                *context,
+                {
+                    "type": "divider",
+                },
+            ]
+        }
+        print(message)
+        r = requests.post(
+            options.url,
+            headers={'Content-Type': 'application/json'},
+            data=json.dumps(message),
+        )
+        r.raise_for_status()
+
 
 
 if __name__ == '__main__':

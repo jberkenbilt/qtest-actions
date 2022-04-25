@@ -16,6 +16,11 @@ jobs:
     steps:
       - name: 'Build'
         run: 'true'
+  Message:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: ci-tools/slack-notify --message potato
   Failing:
     runs-on: ubuntu-latest
     needs: Start
