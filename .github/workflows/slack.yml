@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: ci-tools/slack-notify --message potato --url ${{ secrets.SLACK }}
+      - run: ci-tools/slack-notify --message slack/message.md --url ${{ secrets.SLACK }}
   Failing:
     runs-on: ubuntu-latest
     needs: Start

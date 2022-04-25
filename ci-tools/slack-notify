@@ -52,7 +52,7 @@ class Main:
                          help='report tag creation',
                          action='store_true', default=False)
         mxg.add_argument('--message',
-                         help='post a message')
+                         help='mark-down file with message contents')
         options = parser.parse_args(args)
         if options.complete and not options.token:
             sys.exit(f'{whoami}: --token is required with --complete')
@@ -296,6 +296,8 @@ class Main:
             f'actions/runs/{self.github_run_id}|'
             f'{self.github_workflow} #{self.github_run_number}>*')]
         context = self.get_context()
+        with open(options.message, 'r') as f:
+            message_data = f.read()
         message = {
             'text': (f'Message: https://github.com/'
                      f'{self.github_repository}/actions/runs/'
@@ -312,7 +314,7 @@ class Main:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": options.message,
+                        "text": message_data,
                     }
                 },
                 *context,
