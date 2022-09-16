@@ -1,9 +1,10 @@
-[[deprecated("warning")]]
-inline int f()
+[[deprecated("read the argument to emit_warning")]]
+inline int emit_warning(char const*)
 {
-    return 12;
+    return 0;
 }
-static auto x = f();
+static auto w1 = emit_warning("message1");
+static auto w2 = emit_warning("message2");
 
 int main()
 {
